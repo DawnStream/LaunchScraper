@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.']
+
 def toFullMonthName (month):
     if (month == 'Aug.'):
         return 'August'
@@ -13,6 +15,9 @@ def toFullMonthName (month):
     if (month == 'Dec.'):
         return 'December'
     return month
+
+def toMonthNumber(month):
+    return months.index(month)+1
 
 print "Hello, Python!";
 import httplib2
@@ -34,10 +39,27 @@ for element in list:
             continue
      except ValueError:
         continue
-     month = toFullMonthName(month)
+     month = toMonthNumber(month)
 
      (rocket, mission) =  element.contents[1].string.split(unicode(u' • '))
      mission = mission.replace('&amp;', '&')
-     print month, day
+     time = element.findNextSibling().contents[1]
+     if 'TBD' in time:
+        startTime = '0000'
+        endTime = ''
+     else:
+         time = time.split(' GMT')[0]
+         time = time.split('-')
+         startTime = time[0].lstrip()
+         if len(time) > 1:
+            endTime = time[1].lstrip()
+         else:
+            endTime = ''
+
      print rocket,':', mission
+     print startTime, endTime
+     print month, day
+
+     print '2015'+'-'+'{:0>2}'.format(str(month))+'-'+'{:0>2}'.format(str(day))+'T'+str(startTime)
+
 

@@ -60,6 +60,6 @@ for element in list:
      print startTime, endTime
      print month, day
 
-     print '2015'+'-'+'{:0>2}'.format(str(month))+'-'+'{:0>2}'.format(str(day))+'T'+str(startTime)
+     print '2015'+'-'+'{:0>2}'.format(str(month))+'-'+'{:0>2}'.format(str(day))+'T'+str(startTime)+'Z'
 
 

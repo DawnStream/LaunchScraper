@@ -20,6 +20,8 @@ def toMonthNumber(month):
     return months.index(month)+1
 
 print "Hello, Python!";
+import re
+import json
 import httplib2
 from BeautifulSoup import BeautifulSoup
 h = httplib2.Http(".cache")
@@ -45,14 +47,18 @@ for element in list:
      mission = mission.replace('&amp;', '&')
      time = element.findNextSibling().contents[1]
      if 'TBD' in time:
-        startTime = '0000'
+        startTime = '00:00'
         endTime = ''
      else:
          time = time.split(' GMT')[0]
          time = time.split('-')
          startTime = time[0].lstrip()
+         m = re.search('(\d\d)(\d\d)(\d\d)?', startTime)
+         startTime = m.group(1)+':'+m.group(2)
          if len(time) > 1:
             endTime = time[1].lstrip()
+            m = re.search('(\d\d)(\d\d)(\d\d)?', endTime)
+            endTime = m.group(1)+':'+m.group(2)
          else:
             endTime = ''
 
@@ -60,6 +66,9 @@ for element in list:
      print startTime, endTime
      print month, day
 
-     print '2015'+'-'+'{:0>2}'.format(str(month))+'-'+'{:0>2}'.format(str(day))+'T'+str(startTime)+'Z'
+     iso = '2015'+'-'+'{:0>2}'.format(str(month))+'-'+'{:0>2}'.format(str(day))+'T'+str(startTime)+'Z'
+     body = json.dumps({'date' : iso})
+     headers = {'Content-type': 'application/json'}
+     h.request("http://localhost:3000/testDate/", 'POST', headers=headers, body=body)
 
 

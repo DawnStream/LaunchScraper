@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-print "Hello, Python!"
 import re
 import json
 import httplib2

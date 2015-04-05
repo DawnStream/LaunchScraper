@@ -14,8 +14,8 @@ def scrapeSpcaflightInsider():
     soup = BeautifulSoup(content)
     # noinspection PyPep8Naming
     tableList = soup.findAll('table', {'class': "launchcalendar"})
-    print tableList[2].prettify()
-    print tableList[2].contents[1].contents[3]
+    # print tableList[2].prettify()
+    # print tableList[2].contents[1].contents[3]
     for element in tableList:
         date = element.contents[1].th.text
         if 'TBD' in date:
@@ -76,10 +76,13 @@ def scrapeSpcaflightInsider():
         (resp_headers, rocketResponse) = h.request('http://localhost:3000/rocket/model/' + urllib.quote(rocket))
         # noinspection PyPep8Naming
         rocketResponse = json.loads(rocketResponse)
+        print rocketResponse
         if not rocketResponse:
             body = json.dumps({'Model': rocket, 'Version': version})
             headers = {'Content-type': 'application/json'}
-            h.request("http://localhost:3000/rocket/", 'POST', headers=headers, body=body)
+            (resp_headers, rocket) = h.request("http://localhost:3000/rocket/", 'POST', headers=headers, body=body)
+            rocket = json.loads(rocket)[0]
+            print rocket
         else:
             found = False
             for response in rocketResponse:
@@ -90,8 +93,13 @@ def scrapeSpcaflightInsider():
             if not found:
                 body = json.dumps({'Model': rocket, 'Version': version})
                 headers = {'Content-type': 'application/json'}
-                h.request("http://localhost:3000/rocket/", 'POST', headers=headers, body=body)
+                (resp_headers, rocket) = h.request("http://localhost:3000/rocket/", 'POST', headers=headers, body=body)
+                rocket = json.loads(rocket)[0]
+                print rocket
         launch = {'Mission': mission, 'Date': start_iso, 'Rocket': rocket, 'Location': location}
         print json.dumps(launch)
+        body = json.dumps(launch)
+        headers = {'Content-type': 'application/json'}
+        (resp_headers, rocket) = h.request("http://localhost:3000/launch/", 'POST', headers=headers, body=body)
 
 

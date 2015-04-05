@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 
-import re
-import json
-import httplib2
-import urllib
-from BeautifulSoup import BeautifulSoup
-import DateUtils
+#import re
+#import json
+#import httplib2
+#import urllib
+#from BeautifulSoup import BeautifulSoup
+#import DateUtils
 import SpaceflightInsiderScraper
 
 SpaceflightInsiderScraper.scrapeSpcaflightInsider()

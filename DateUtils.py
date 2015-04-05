@@ -3,6 +3,7 @@ months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'Aug.'
           'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 
+# noinspection PyPep8Naming
 def toFullMonthName(month):
     if month == 'Aug.':
         return 'August'

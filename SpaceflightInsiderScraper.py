@@ -4,19 +4,22 @@ import httplib2
 import urllib
 import re
 import json
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from DateUtils import toMonthNumber
-
+from dictdiffer import DictDiffer
 
 def scrapeSpcaflightInsider():
     h = httplib2.Http(".cache")
     (resp_headers, content) = h.request("http://www.spaceflightinsider.com/launch-schedule/", "GET")
     soup = BeautifulSoup(content)
     # noinspection PyPep8Naming
-    tableList = soup.findAll('table', {'class': "launchcalendar"})
+    tableList = soup.find_all('table', class_='launchcalendar')
     # print tableList[2].prettify()
     # print tableList[2].contents[1].contents[3]
     for element in tableList:
+        # all past launches have 'ast' as a class
+        if 'past' in element.attrs['class']:
+            continue
         date = element.contents[1].th.text
         if 'TBD' in date:
             continue
@@ -27,7 +30,7 @@ def scrapeSpcaflightInsider():
         m = re.search('([\s\S]+)(?= \()', mission)
         if m is not None:
             mission = m.group(0)
-        rocket = element.contents[2].td.text
+        rocket = element.contents[2].td.text.strip()  # get the rocket field and strip any white spaces
         # noinspection PyPep8Naming
         rocketVersion = rocket.split(' ')
         if len(rocketVersion) > 2:
@@ -98,8 +101,22 @@ def scrapeSpcaflightInsider():
                 print rocket
         launch = {'Mission': mission, 'Date': start_iso, 'Rocket': rocket, 'Location': location}
         print json.dumps(launch)
-        body = json.dumps(launch)
-        headers = {'Content-type': 'application/json'}
-        (resp_headers, rocket) = h.request("http://localhost:3000/launch/", 'POST', headers=headers, body=body)
 
-
+        (resp_headers, launchResponse) = h.request("http://localhost:3000/launch/", 'GET')
+        launchResponse = json.loads(launchResponse)
+        if not launchResponse:
+            body = json.dumps(launch)
+            headers = {'Content-type': 'application/json'}
+            h.request("http://localhost:3000/launch/", 'POST', headers=headers, body=body)
+        else:
+            found = False
+            for response in launchResponse:
+                if launch['Mission'].find(response['Mission']) > -1 or response['Mission'].find(launch['Mission']) > -1:
+                    diff = DictDiffer(launch, response)
+                    print diff.changed()
+                    found = True
+            if not found:
+                print "NEW MISSION"
+                body = json.dumps(launch)
+                headers = {'Content-type': 'application/json'}
+                h.request("http://localhost:3000/launch/", 'POST', headers=headers, body=body)

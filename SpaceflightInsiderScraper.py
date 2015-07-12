@@ -6,7 +6,7 @@ import re
 import json
 from bs4 import BeautifulSoup
 from DateUtils import toMonthNumber
-from dictdiffer import DictDiffer
+from dictdiffer import diff
 
 def scrapeSpcaflightInsider():
     h = httplib2.Http(".cache")
@@ -118,8 +118,7 @@ def scrapeSpcaflightInsider():
             found = False
             for response in launchResponse:
                 if launch['Mission'].find(response['Mission']) > -1 or response['Mission'].find(launch['Mission']) > -1:
-                    diff = DictDiffer(launch, response)
-                    print diff.changed()
+                    print list(diff(launch, response))
                     found = True
             if not found:
                 print "NEW MISSION"

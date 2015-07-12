@@ -55,14 +55,20 @@ def scrapeSpcaflightInsider():
             # noinspection PyPep8Naming
             endTime = ''
         else:
-            t = re.search('(\d\d?):(\d+) ([AP]M) [\w]{3} \(UTC([-+]\d+)', time)
+            t = re.search('(\d\d?):(\d+) ([AP]M) [\w]{3,4} \(UTC([-+]\d+)', time)
             # noinspection PyPep8Naming
             startTime = int(t.group(1))
             if 'PM' in t.group(3):
                 startTime += 12
             startTime -= int(t.group(4))
+            if startTime < 0:
+                startTime += 24;
+                day = int(day)-1;
+            if startTime >= 24:
+                startTime -= 24;
+                day = int(day)+1;
             # noinspection PyPep8Naming
-            startTime = str(startTime) + ':' + t.group(2)
+            startTime = '{:0>2}'.format(str(startTime)) + ':' + t.group(2)
             # noinspection PyPep8Naming
             endTime = ''
         start_iso = '2015' + '-' + '{:0>2}'.format(str(month)) + '-' + '{:0>2}'.format(str(day)) + 'T' + str(

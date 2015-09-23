@@ -5,10 +5,13 @@ import urllib
 import re
 import json
 from bs4 import BeautifulSoup
+from datetime import datetime, date
 from DateUtils import toMonthNumber
-from dictdiffer import diff
+from dictdiffer import diff, patch, swap
 
 def scrapeSpcaflightInsider():
+    current_year = datetime.now().year
+    current_month = datetime.now().month
     h = httplib2.Http(".cache")
     (resp_headers, content) = h.request("http://www.spaceflightinsider.com/launch-schedule/", "GET")
     soup = BeautifulSoup(content)
@@ -17,11 +20,16 @@ def scrapeSpcaflightInsider():
     # print tableList[2].prettify()
     # print tableList[2].contents[1].contents[3]
     for element in tableList:
-        # all past launches have 'ast' as a class
+        # all past launches have 'past' as a class
         if 'past' in element.attrs['class']:
             continue
-        date = element.contents[1].th.text
+        if element.contents[1].th.span and element.contents[1].th.span.attrs['class']:
+            date = element.contents[1].th.span.next_sibling.text
+        else:
+            date = element.contents[1].th.text
         if 'TBD' in date:
+            continue
+        if len(date.split(' ')) == 1:
             continue
         (month, day) = date.split(' ')
         month = toMonthNumber(month)
@@ -71,9 +79,12 @@ def scrapeSpcaflightInsider():
             startTime = '{:0>2}'.format(str(startTime)) + ':' + t.group(2)
             # noinspection PyPep8Naming
             endTime = ''
-        start_iso = '2015' + '-' + '{:0>2}'.format(str(month)) + '-' + '{:0>2}'.format(str(day)) + 'T' + str(
+        year = current_year
+        if current_month > month:
+            year += 1
+        start_iso = str(year) + '-' + '{:0>2}'.format(str(month)) + '-' + '{:0>2}'.format(str(day)) + 'T' + str(
             startTime) + 'Z'
-        end_iso = '2015' + '-' + '{:0>2}'.format(str(month)) + '-' + '{:0>2}'.format(str(day)) + 'T' + str(
+        end_iso = str(year) + '-' + '{:0>2}'.format(str(month)) + '-' + '{:0>2}'.format(str(day)) + 'T' + str(
             endTime) + 'Z'
         print mission
         print start_iso
@@ -119,6 +130,17 @@ def scrapeSpcaflightInsider():
             for response in launchResponse:
                 if launch['Mission'].find(response['Mission']) > -1 or response['Mission'].find(launch['Mission']) > -1:
                     print list(diff(launch, response))
+                    for change in diff(response, launch):
+                        if 'Date' in change[1]:
+                            print change[2][0]
+                            if change[2][1] > change[2][0]:
+                                print "UPDATING MISSION"
+                                print change
+                                launch = patch([change], launch)
+                                print launch
+                                body = json.dumps(launch)
+                                headers = {'Content-type': 'application/json'}
+                                #h.request("http://localhost:3000/launch/", 'POST', headers=headers, body=body)
                     found = True
             if not found:
                 print "NEW MISSION"
